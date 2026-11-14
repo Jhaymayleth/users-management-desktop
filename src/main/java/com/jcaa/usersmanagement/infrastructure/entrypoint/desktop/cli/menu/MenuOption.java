@@ -14,6 +14,12 @@ public enum MenuOption {
   UPDATE_USER(4, "Update user"),
   DELETE_USER(5, "Delete user"),
   LOGIN(6, "Login"),
+  LIST_PRODUCTS(7, "List all products"),
+  FIND_PRODUCT(8, "Find product by ID"),
+  CREATE_PRODUCT(9, "Create product"),
+  UPDATE_PRODUCT(10, "Update product"),
+  DELETE_PRODUCT(11, "Delete product"),
+  LOW_STOCK_PRODUCTS(12, "List products about to run out"),
   EXIT(0, "Exit");
 
   private final int number;
