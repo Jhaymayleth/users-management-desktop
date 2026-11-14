@@ -7,15 +7,15 @@ usuarios y al catálogo de productos del **CEA Ejercicio 28 — Lavadero**.
 
 `ProductModel` representa el agregado Producto. Sus Value Objects validan los datos y el agregado
 mantiene la coherencia entre precios, inventario y estado. En la Unidad 2, el catálogo se persiste
-en memoria; el adaptador PostgreSQL de la Unidad 3 aún está pendiente. La gestión existente de
-usuarios conserva su adaptador MySQL.
+en memoria. Para la Unidad 3 también está implementado un adaptador PostgreSQL con JDBC; el modo
+predeterminado sigue siendo memoria. La gestión existente de usuarios conserva su adaptador MySQL.
 
 ## Arquitectura
 
 - **Dominio:** `ProductModel`, Value Objects, estado y excepciones de negocio.
 - **Aplicación:** casos de uso que orquestan validación y puertos de salida.
-- **Infraestructura:** controlador y handlers CLI, adaptador de productos en memoria y adaptador
-  MySQL de usuarios.
+- **Infraestructura:** controlador y handlers CLI, adaptadores de productos en memoria/PostgreSQL
+  y adaptador MySQL de usuarios.
 - **Configuración:** `DependencyContainer` conecta las capas sin que el dominio conozca la CLI ni
   las bases de datos.
 
@@ -39,3 +39,5 @@ requiere una conexión MySQL válida para el adaptador existente de usuarios.
 `src/main/resources/application.properties` contiene valores de ejemplo. Para credenciales locales,
 crea `src/main/resources/application-local.properties`; sus claves sobrescriben las del archivo de
 ejemplo. Ese archivo está ignorado por Git: no añadas contraseñas ni tokens a archivos versionados.
+La [configuración de PostgreSQL para Producto](docs/database/README.md) explica cómo preparar la
+base local y activar el adaptador.
