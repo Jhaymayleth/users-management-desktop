@@ -64,6 +64,19 @@ class AppPropertiesTest {
   }
 
   @Test
+  @DisplayName("local properties override the default values")
+  void shouldOverrideDefaultsWithLocalProperties() {
+    final InputStream defaults =
+        new ByteArrayInputStream("db.host=default\n".getBytes(StandardCharsets.UTF_8));
+    final InputStream local =
+        new ByteArrayInputStream("db.host=local\n".getBytes(StandardCharsets.UTF_8));
+
+    final AppProperties loaded = new AppProperties(defaults, local);
+
+    assertEquals("local", loaded.get("db.host"));
+  }
+
+  @Test
   @DisplayName(
       "constructor(InputStream) throws NullPointerException when stream is null (file not found)")
   void shouldThrowNullPointerExceptionWhenStreamIsNull() {

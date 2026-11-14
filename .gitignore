@@ -40,3 +40,6 @@ build/
 .idea/
 *.log
 
+# Local database and SMTP credentials
+src/main/resources/application-local.properties
+

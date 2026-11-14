@@ -8,24 +8,34 @@ import java.util.Properties;
 public final class AppProperties {
 
   private static final String PROPERTIES_FILE = "application.properties";
+  private static final String LOCAL_PROPERTIES_FILE = "application-local.properties";
 
   private final Properties properties;
 
   public AppProperties() {
-    this(AppProperties.class.getClassLoader().getResourceAsStream(PROPERTIES_FILE));
+    this(
+        AppProperties.class.getClassLoader().getResourceAsStream(PROPERTIES_FILE),
+        AppProperties.class.getClassLoader().getResourceAsStream(LOCAL_PROPERTIES_FILE));
   }
 
   // Package-private — test entry point: inject null to simulate file-not-found,
   // a failing stream to simulate IOException, or a valid stream for the happy path.
   AppProperties(final InputStream stream) {
-    this.properties = doLoad(stream);
+    this(stream, null);
   }
 
-  private static Properties doLoad(final InputStream stream) {
+  AppProperties(final InputStream stream, final InputStream localStream) {
+    this.properties = doLoad(stream, localStream);
+  }
+
+  private static Properties doLoad(final InputStream stream, final InputStream localStream) {
     Objects.requireNonNull(stream, "File not found in classpath: " + PROPERTIES_FILE);
     final Properties props = new Properties();
-    try (stream) {
+    try (stream; localStream) {
       props.load(stream);
+      if (localStream != null) {
+        props.load(localStream);
+      }
     } catch (final IOException exception) {
       throw ConfigurationException.becauseLoadFailed(exception);
     }
