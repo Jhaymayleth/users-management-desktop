@@ -1,23 +1,39 @@
 package com.jcaa.usersmanagement.infrastructure.config;
 
+import com.jcaa.usersmanagement.application.port.in.CreateProductUseCase;
 import com.jcaa.usersmanagement.application.port.in.CreateUserUseCase;
+import com.jcaa.usersmanagement.application.port.in.DeleteProductUseCase;
 import com.jcaa.usersmanagement.application.port.in.DeleteUserUseCase;
+import com.jcaa.usersmanagement.application.port.in.GetAllProductsUseCase;
 import com.jcaa.usersmanagement.application.port.in.GetAllUsersUseCase;
+import com.jcaa.usersmanagement.application.port.in.GetLowStockProductsUseCase;
+import com.jcaa.usersmanagement.application.port.in.GetProductByIdUseCase;
 import com.jcaa.usersmanagement.application.port.in.GetUserByIdUseCase;
 import com.jcaa.usersmanagement.application.port.in.LoginUseCase;
+import com.jcaa.usersmanagement.application.port.in.SearchProductsUseCase;
+import com.jcaa.usersmanagement.application.port.in.UpdateProductUseCase;
 import com.jcaa.usersmanagement.application.port.in.UpdateUserUseCase;
+import com.jcaa.usersmanagement.application.service.CreateProductService;
 import com.jcaa.usersmanagement.application.service.CreateUserService;
+import com.jcaa.usersmanagement.application.service.DeleteProductService;
 import com.jcaa.usersmanagement.application.service.DeleteUserService;
 import com.jcaa.usersmanagement.application.service.EmailNotificationService;
+import com.jcaa.usersmanagement.application.service.GetAllProductsService;
 import com.jcaa.usersmanagement.application.service.GetAllUsersService;
+import com.jcaa.usersmanagement.application.service.GetLowStockProductsService;
+import com.jcaa.usersmanagement.application.service.GetProductByIdService;
 import com.jcaa.usersmanagement.application.service.GetUserByIdService;
 import com.jcaa.usersmanagement.application.service.LoginService;
+import com.jcaa.usersmanagement.application.service.SearchProductsService;
+import com.jcaa.usersmanagement.application.service.UpdateProductService;
 import com.jcaa.usersmanagement.application.service.UpdateUserService;
 import com.jcaa.usersmanagement.infrastructure.adapter.email.JavaMailEmailSenderAdapter;
 import com.jcaa.usersmanagement.infrastructure.adapter.email.SmtpConfig;
 import com.jcaa.usersmanagement.infrastructure.adapter.persistence.config.DatabaseConfig;
 import com.jcaa.usersmanagement.infrastructure.adapter.persistence.config.DatabaseConnectionFactory;
+import com.jcaa.usersmanagement.infrastructure.adapter.persistence.repository.InMemoryProductRepositoryAdapter;
 import com.jcaa.usersmanagement.infrastructure.adapter.persistence.repository.UserRepositoryMySQL;
+import com.jcaa.usersmanagement.infrastructure.entrypoint.desktop.controller.ProductController;
 import com.jcaa.usersmanagement.infrastructure.entrypoint.desktop.controller.UserController;
 
 import java.sql.Connection;
@@ -39,6 +55,7 @@ public final class DependencyContainer {
   private static final String SMTP_FROM_NAME = "smtp.from.name";
 
   private final UserController userController;
+  private final ProductController productController;
 
   public DependencyContainer() {
     final AppProperties properties = new AppProperties();
@@ -71,10 +88,44 @@ public final class DependencyContainer {
             getUserByIdUseCase,
             getAllUsersUseCase,
             loginUseCase);
+
+    // El catálogo de productos usa el adaptador en memoria de la Unidad 2. En la Unidad 3 se
+    // sustituye por el adaptador JDBC de PostgreSQL sin modificar los casos de uso.
+    final InMemoryProductRepositoryAdapter productRepository =
+        new InMemoryProductRepositoryAdapter();
+
+    final CreateProductUseCase createProductUseCase =
+        new CreateProductService(productRepository, productRepository, validator);
+    final UpdateProductUseCase updateProductUseCase =
+        new UpdateProductService(productRepository, productRepository, validator);
+    final DeleteProductUseCase deleteProductUseCase =
+        new DeleteProductService(productRepository, productRepository, validator);
+    final GetProductByIdUseCase getProductByIdUseCase =
+        new GetProductByIdService(productRepository, validator);
+    final GetAllProductsUseCase getAllProductsUseCase =
+        new GetAllProductsService(productRepository);
+    final SearchProductsUseCase searchProductsUseCase =
+        new SearchProductsService(productRepository);
+    final GetLowStockProductsUseCase getLowStockProductsUseCase =
+        new GetLowStockProductsService(productRepository);
+
+    this.productController =
+        new ProductController(
+            createProductUseCase,
+            updateProductUseCase,
+            deleteProductUseCase,
+            getProductByIdUseCase,
+            getAllProductsUseCase,
+            searchProductsUseCase,
+            getLowStockProductsUseCase);
   }
 
   public UserController userController() {
     return userController;
+  }
+
+  public ProductController productController() {
+    return productController;
   }
 
   private static Connection buildDatabaseConnection(final AppProperties properties) {
