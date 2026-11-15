@@ -43,16 +43,30 @@ local existente para el adaptador de usuarios.
 mvn test
 ```
 
-Las pruebas del adaptador PostgreSQL usan mocks JDBC; no sustituyen una prueba de integración
-contra un servidor real. Verifica las operaciones en una base local antes de entregar.
+Las pruebas del adaptador PostgreSQL usan mocks JDBC. Además, el CRUDL completo se verificó contra
+una instancia PostgreSQL 15 real: crear, consultar por identificador, actualizar, listar, buscar,
+consultar stock bajo y eliminar.
 
-## Generar el respaldo
+## Respaldo incluido
 
-Después de cargar el esquema y el seed, genera el dump local:
+El repositorio incluye `db/postgresql/backup.sql`, un dump en texto plano generado con `pg_dump`
+15.3 desde una base `lavadero` creada con `schema.sql` y `seed.sql`. Se usaron `--no-owner` y
+`--no-acl` para que el archivo se pueda restaurar con cualquier usuario local sin depender de roles
+del equipo donde se generó:
 
 ```powershell
 pg_dump --host=127.0.0.1 --port=5432 --username=postgres --format=plain --no-owner --no-acl --file=db/postgresql/backup.sql lavadero
 ```
 
-`backup.sql` debe contener un dump real generado por `pg_dump`, no una copia del esquema o del seed.
-No se incluye hasta que pueda generarse y verificarse con acceso autenticado al PostgreSQL local.
+Para regenerarlo después de cambiar los datos, ejecuta el mismo comando sobre la base actualizada.
+
+## Restaurar el respaldo
+
+```powershell
+createdb --host=127.0.0.1 --port=5432 --username=postgres lavadero_restore
+psql --host=127.0.0.1 --port=5432 --username=postgres --dbname=lavadero_restore --file=db/postgresql/backup.sql
+```
+
+El dump conserva la tabla `products`, la relación `product_suppliers`, sus restricciones, índices y
+los tres productos del seed. La restauración se verificó comparando los conteos y un hash de las
+filas de `products` entre la base original y la restaurada; ambos resultados coincidieron.
